@@ -63,7 +63,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: "SaveManager.dll"
-        path: "home/runner/work/SaveManager/SaveManager/SaveManager/bin/Release/net8.0/SaveManager.dll"
-  
-  
-          
+        path: "/home/runner/work/SaveManager/SaveManager/SaveManager/bin/Release/net8.0/SaveManager.dll"
