@@ -1,66 +1,41 @@
-name: "Build"
+name: .NET 8 Release
 
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
-      
+      - 'v*'
+
+permissions:
+  contents: write
+
 jobs:
   build:
-    name: Build 
     runs-on: ubuntu-latest
-    env:
-      DOTNET_CLI_TELEMETRY_OPTOUT: 1
-      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-      DOTNET_NOLOGO: true
-      DOTNET_GENERATE_ASPNET_CERTIFICATE: false
-      DOTNET_ADD_GLOBAL_TOOLS_TO_PATH: false
-      DOTNET_MULTILEVEL_LOOKUP: 0
-      DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: true
-      TERM: xterm
 
     steps:
-    - uses: actions/checkout@v4
-      
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.406
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    # if not using any workloads (e.g, Aspire, Wasm, Maui), remove this step
-#    - name: Restore workloads
-#      run: dotnet workload restore
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-    - name: Restore
-      run: dotnet restore
+      - name: Restore dependencies
+        run: dotnet restore
 
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
+      - name: Build project
+        run: dotnet publish -c Release -o output
 
-    - name: Test
-      run: dotnet test
-      
-#  release:
- #   name: Release
-  #  needs: [ build ]
-   # runs-on: ubuntu-latest
-    #steps:
-    - name: Get current date
-      id: date
-      run: echo "::set-output name=date::$(date +'%Y%m%d%H%M%S')"
+      - name: Archive build
+        run: |
+          zip -r release.zip output
 
-    - name: Create release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        tag: ${{ github.ref_name }}
-      run: |
-        gh release create "$tag" \
-            --repo="$GITHUB_REPOSITORY" \
-            --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
-            --generate-notes
-            
-    - name: Upload DLL
-      uses: actions/upload-artifact@v4
-      with:
-        name: "SaveManager.dll"
-        path: "/home/runner/work/SaveManager/SaveManager/SaveManager/bin/Release/net8.0/SaveManager.dll"
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ github.ref_name }} release.zip \
+            --title "Release ${{ github.ref_name }}" \
+            --notes "Automated release for ${{ github.ref_name }}"
+        shell: bash
