@@ -39,8 +39,10 @@ jobs:
 
     - name: Test
       run: dotnet test
+      
   release:
     name: Release
+    needs: [ build ]
     runs-on: ubuntu-latest
     steps:
     - name: Get current date
