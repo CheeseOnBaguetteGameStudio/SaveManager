@@ -46,8 +46,27 @@ jobs:
     - name: Restore
       run: dotnet restore
 
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
+    - name: Publish win-x64
+      run: dotnet publish SaveManager/SaveManager.csproj -c Release -p:PublishSingleFile=true -p:PublishTrimmed=true -p:PublishReadyToRun=false
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y%m%d%H%M%S')"
 
-    - name: Test
-      run: dotnet test
+    - name: Create release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ github.ref_name }}
+      run: |
+        gh release create "$tag" \
+            --repo="$GITHUB_REPOSITORY" \
+            --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+            --generate-notes
+            
+    - name: Upload DLL
+      uses: actions/upload-artifact@v4
+      with:
+        name: "SaveManager.dll"
+        path: "/home/runner/work/SaveManager/SaveManager/bin/Release/net8.0/SaveManager.dll"
+
+
+        
