@@ -47,7 +47,7 @@ jobs:
       run: dotnet restore
 
     - name: Publish win-x64
-      run: dotnet publish SaveManager/SaveManager.csproj -c Release -p:PublishSingleFile=true -p:PublishTrimmed=true -p:PublishReadyToRun=false
+      run: dotnet publish SaveManager/SaveManager.csproj -c Release -p:PublishTrimmed=true -p:PublishReadyToRun=false
     - name: Get current date
       id: date
       run: echo "::set-output name=date::$(date +'%Y%m%d%H%M%S')"
